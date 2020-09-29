@@ -16,9 +16,9 @@ class Register():
         self.delivery = delivery
         self.offers = offers
         self.cart = []
-        self.total = 0.0
+        self.total_price = 0.0
 
-    def add_product(self, prod_code):
+    def add(self, prod_code):
         if prod_code in self.catalogue:
             self.cart.append(prod_code)
         else:
@@ -36,7 +36,7 @@ class Register():
                 cursor += 1
                 ix_list.append(ix)
                 if cursor == len(offer):
-                    self.total += offer.get('amt')
+                    self.total_price += offer.get('amt')
                     cursor = 0
                     return ix_list
             else:
@@ -44,17 +44,17 @@ class Register():
 
     def calc_non_offer_total(self):
         for prod_code in self.cart:
-            self.total += self.catalogue[prod_code][1]
+            self.total_price += self.catalogue[prod_code][1]
 
     def calc_delivery_charges(self):
         for lower_bound, upper_bound, charges in self.delivery:
-            if lower_bound <= self.total < upper_bound:
-                self.total += charges
+            if lower_bound <= self.total_price < upper_bound:
+                self.total_price += charges
                 break
 
-    def calc_total(self):
+    def total(self):
         if self.cart:
-            for offer in self.offers:
+            for offer in sorted(self.offers, key = lambda x: x['amt'], reverse=True):
                 found_match_indices = self.match_offer(offer)
                 if found_match_indices:
                     for ix in sorted(found_match_indices, reverse=True):
@@ -88,10 +88,10 @@ if __name__=='__main__':
                 print("Please provide a list of correct product code")
             else:
                 for p in sys.argv[2:]:
-                    reg.add_product(p)
+                    reg.add(p)
             
-            reg.calc_total()
-            print('GRAND TOTAL: {}'.format(reg.total))
+            reg.total()
+            print('GRAND TOTAL: ${:.2f}'.format(reg.total_price))
 
     except IndexError:
         print("Please enter a parameter")
