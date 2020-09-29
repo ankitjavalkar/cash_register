@@ -1,4 +1,4 @@
-import csv
+import sys
 
 from config import CATALOGUE, DELIVERY, OFFERS
 
@@ -30,13 +30,14 @@ class Register():
 
     def match_offer(self, offer):
         cursor = 0
+        ix_list = []
         for ix, i in enumerate(self.cart):
-            ix_list = []
-            if i == offer.pattern[cursor]:
+            if i == offer.get('pattern')[cursor]:
                 cursor += 1
                 ix_list.append(ix)
                 if cursor == len(offer):
-                    self.total += offer.amt
+                    self.total += offer.get('amt')
+                    cursor = 0
                     return ix_list
             else:
                 cursor = 0
@@ -56,7 +57,7 @@ class Register():
             for offer in self.offers:
                 found_match_indices = self.match_offer(offer)
                 if found_match_indices:
-                    for ix in sorted(found_match, reverse=True):
+                    for ix in sorted(found_match_indices, reverse=True):
                         self.cart.pop(ix)
 
             self.calc_non_offer_total()
@@ -67,33 +68,31 @@ class Register():
             )
 
 if __name__=='__main__':
-    help_txt = (
+    help_txt = ''.join((
             'Usage: python3 cash_register.py [OPTIONS]...',
             '\n a, add [PRODUCT-CODE1] [PRODUCT-CODE2] [PRODUCT-CODE3]...',
-            '\t\t Add product codes to cart, use "Y" to exit product addition loop',
-            '\n c, calc',
-            '\t\t Calculate total cost of products in cart',
+            '\t Add product codes to cart, and calculate total',
             '\n h, help',
-            '\t\t Print this help text',
-        )
+            '\t Print this help text',
+        ))
 
     reg = Register(CATALOGUE, DELIVERY, OFFERS)
 
-    if not sys.argv[1]:
+
+    try:
+        if sys.argv[1] in ['h', 'help']:
+            print(help_txt)
+
+        elif sys.argv[1] in ['a', 'add']:
+            if not sys.argv[2:]:
+                print("Please provide a list of correct product code")
+            else:
+                for p in sys.argv[2:]:
+                    reg.add_product(p)
+            
+            reg.calc_total()
+            print('GRAND TOTAL: {}'.format(reg.total))
+
+    except IndexError:
         print("Please enter a parameter")
         print(help_txt)
-
-    if sys.argv[1] in ['h', 'help']:
-        print(help_txt)
-
-    elif sys.argv[1] in ['c', 'calc']:
-        reg.calc_total()
-        print('GRAND TOTAL: {}'.format(reg.total))
-
-    elif sys.argv[1] in ['a', 'add']:
-        if not sys.argv[2:]:
-            print("Please provide a list of correct product code")
-        else:
-            for p in sys.argv[2:]:
-                reg.add_product(p)
-

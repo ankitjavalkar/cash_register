@@ -11,5 +11,5 @@ DELIVERY = [
 ]
 
 OFFERS = [
-    {'pattern': ['R01']*2, 'amt': 49.42},
+    {'pattern': ['R01', 'R01'], 'amt': 49.42},
 ]
